@@ -100,6 +100,28 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 			$this->output("Unable to purge cache for \"%s\" ...\n", array($url));
 		}
 	}
+
+	/**
+	 * Enable or disable the development mode
+	 *
+	 * @param string $zone
+	 * @param boolean $disable
+	 */
+	public function developmentModeCommand($zone, $disable = FALSE) {
+		$cacheDefinition = new CacheDefinition($this->settings['apiKey'], $this->settings['email'], $zone);
+		$this->output("\n");
+		try {
+			if ($disable === FALSE) {
+				$this->cacheService->enableDevelopmentMode($cacheDefinition);
+				$this->output("Development mode enabled ...\n");
+			} else {
+				$this->cacheService->disableDevelopmentMode($cacheDefinition);
+				$this->output("Development mode disabled ...\n");
+			}
+		} catch (\Ttree\Cloudflare\Exception $exception) {
+			$this->output("Unable to configurer development mode ...\n");
+		}
+	}
 }
 
 ?>
