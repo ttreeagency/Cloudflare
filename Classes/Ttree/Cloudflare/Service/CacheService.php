@@ -41,6 +41,8 @@ class CacheService {
 	}
 
 	/**
+	 * Send request to CloudFlare API
+	 *
 	 * @param string $method
 	 * @param array $arguments
 	 * @return array

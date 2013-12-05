@@ -43,6 +43,8 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	}
 
 	/**
+	 * Display basic statistics
+	 *
 	 * @param string $zone
 	 * @param integer $interval
 	 */
@@ -65,6 +67,8 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	}
 
 	/**
+	 * Purge all cache
+	 *
 	 * @param string $zone
 	 */
 	public function purgeAllCacheCommand($zone) {
@@ -79,6 +83,8 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	}
 
 	/**
+	 * Purge cache for the given URL
+	 *
 	 * @param string $zone
 	 * @param string $url
 	 */

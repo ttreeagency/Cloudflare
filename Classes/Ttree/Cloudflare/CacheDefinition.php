@@ -14,7 +14,7 @@ namespace Ttree\Cloudflare;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * Cloudflare Cache Manager
+ * Cloudflare Cache Definition
  */
 class CacheDefinition {
 
