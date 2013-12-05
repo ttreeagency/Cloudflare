@@ -1,0 +1,5 @@
+
+Ttree:
+  Cloudflare:
+    apiKey: 'need-to-be-configured'
+    email: 'api@domain.com'
