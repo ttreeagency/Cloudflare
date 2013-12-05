@@ -59,6 +59,7 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 			$this->output("Page Views (Crawler):\t\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.trafficBreakdown.pageviews.crawler')));
 			$this->output("\n");
 			$this->output("Bandwidth Served (CF):\t\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.bandwidthServed.cloudflare')));
+			$this->output("Bandwidth Served (Client):\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.bandwidthServed.user')));
 			$this->output("\n");
 			$this->output("Pro Account:\t\t\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.pro_zone') ? 'Yes' : 'No'));
 		} catch (\Ttree\Cloudflare\Exception $exception) {
