@@ -76,3 +76,4 @@ Todos
 - Custom page expiration HTTP headers
 - Better test coverage
 - Some advanced configuration documentation
+- Job Queue support to generate the page cache after purging the cache
