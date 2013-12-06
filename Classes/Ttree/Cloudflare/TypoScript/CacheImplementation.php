@@ -16,8 +16,6 @@ use Ttree\Cloudflare\Service\RequestCacheService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Mvc\ActionRequest;
-use TYPO3\Flow\Reflection\ObjectAccess;
-use TYPO3\TYPO3CR\Domain\Factory\NodeFactory;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 use TYPO3\TypoScript\TypoScriptObjects\AbstractTypoScriptObject;
 
@@ -25,12 +23,6 @@ use TYPO3\TypoScript\TypoScriptObjects\AbstractTypoScriptObject;
  * Tag the current request with all nodes used to render the current page
  */
 class CacheImplementation extends AbstractTypoScriptObject {
-
-	/**
-	 * @Flow\Inject
-	 * @var NodeFactory
-	 */
-	protected $nodeFactory;
 
 	/**
 	 * @Flow\Inject
@@ -95,35 +87,38 @@ class CacheImplementation extends AbstractTypoScriptObject {
 	 * @return void
 	 */
 	public function evaluate() {
-		/** @var ActionRequest $request */
-		$request = $this->tsRuntime->getControllerContext()->getRequest()->getMainRequest();
-		$cacheDefinition = $this->cacheDefinitionFactory->create($this->tsValue('zone'));
-		if ($cacheDefinition->getEnable() === FALSE || $this->tsValue('enable') === FALSE) {
-			$this->systemLogger->log('Request cache disabled', LOG_DEBUG, NULL, 'Cloudflare');
-			return;
+		try {
+			/** @var ActionRequest $request */
+			$request = $this->tsRuntime->getControllerContext()->getRequest()->getMainRequest();
+			$cacheDefinition = $this->cacheDefinitionFactory->create($this->tsValue('zone'));
+			if ($cacheDefinition->getEnable() === FALSE || $this->tsValue('enable') === FALSE) {
+				$this->systemLogger->log('Request cache disabled', LOG_DEBUG, NULL, 'Cloudflare');
+				return;
+			}
+
+			/** @var NodeInterface $documentNode */
+			$documentNode = $this->tsValue('documentNode');
+			if ($documentNode->getContext()->getWorkspace(FALSE)->getName() !== 'live') {
+				return;
+			}
+
+			$uriBuilder = clone $this->tsRuntime->getControllerContext()->getUriBuilder();
+			$uriBuilder->setRequest($request);
+
+			$uri = $uriBuilder
+				->reset()
+				->setCreateAbsoluteUri(TRUE)
+				->setFormat($request->getFormat())
+				->uriFor('show', array('node' => $documentNode->getIdentifier()), 'Frontend\Node', 'TYPO3.Neos');
+
+			if ($this->requestCacheService->has($uri)) {
+				$this->systemLogger->log('Request cache record exist', LOG_DEBUG, NULL, 'Cloudflare');
+				return;
+			}
+
+			$this->requestCacheService->createRequestUriCacheRecord($uri, $cacheDefinition);
+		} catch (\Ttree\Cloudflare\Exception $exception) {
+			$this->systemLogger->logException($exception);
 		}
-
-		/** @var NodeInterface $documentNode */
-		$documentNode = $this->tsValue('documentNode');
-		if ($documentNode->getContext()->getWorkspace(FALSE)->getName() !== 'live') {
-			return;
-		}
-
-		$uriBuilder = clone $this->tsRuntime->getControllerContext()->getUriBuilder();
-		$uriBuilder->setRequest($request);
-
-		$nodes = ObjectAccess::getProperty($this->nodeFactory, 'nodes', TRUE);
-		$uri = $uriBuilder
-			->reset()
-			->setCreateAbsoluteUri(TRUE)
-			->setFormat($request->getFormat())
-			->uriFor('show', array('node' => $documentNode->getIdentifier()), 'Frontend\Node', 'TYPO3.Neos');
-
-		if ($this->requestCacheService->has($uri)) {
-			$this->systemLogger->log('Request cache record exist', LOG_DEBUG, NULL, 'Cloudflare');
-			return;
-		}
-
-		$this->requestCacheService->createRequestUriCacheRecord($uri, $nodes, $cacheDefinition);
 	}
 }

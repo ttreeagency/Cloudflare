@@ -17,13 +17,21 @@ use Ttree\Cloudflare\Factory\CacheDefinitionFactory;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cache\Frontend\StringFrontend;
 use TYPO3\Flow\Log\SystemLoggerInterface;
+use TYPO3\Flow\Reflection\ObjectAccess;
 use TYPO3\Flow\Utility\Arrays;
+use TYPO3\TYPO3CR\Domain\Factory\NodeFactory;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 
 /**
  * @Flow\Scope("singleton")
  */
 class RequestCacheService {
+
+	/**
+	 * @Flow\Inject
+	 * @var NodeFactory
+	 */
+	protected $nodeFactory;
 
 	/**
 	 * @var StringFrontend
@@ -116,9 +124,10 @@ class RequestCacheService {
 	 *
 	 * @param string $uri
 	 * @param CacheDefinition $cacheDefinition
-	 * @param array $nodes
 	 */
-	public function createRequestUriCacheRecord($uri, array $nodes, CacheDefinition $cacheDefinition) {
+	public function createRequestUriCacheRecord($uri, CacheDefinition $cacheDefinition) {
+		// @todo find a better way to detect used nodes in the current request
+		$nodes = ObjectAccess::getProperty($this->nodeFactory, 'nodes', TRUE);
 		$this->removeRequestUriCacheRecord($uri);
 		$tags = array();
 		foreach ($nodes as $node) {
