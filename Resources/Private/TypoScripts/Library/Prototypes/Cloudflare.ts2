@@ -1,0 +1,10 @@
+prototype(Ttree.Cloudflare:Cache) {
+	@class = '\\Ttree\\Cloudflare\\TypoScript\\CacheImplementation'
+
+	documentNode = ${documentNode}
+
+	enable = FALSE
+	apiKey = 'need-to-be-configured'
+	email = 'api@domain.com'
+	zone = 'need-to-be-configured'
+}

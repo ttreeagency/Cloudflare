@@ -11,63 +11,34 @@ namespace Ttree\Cloudflare\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Ttree\Cloudflare\Browser;
 use Ttree\Cloudflare\CacheDefinition;
+use Ttree\Cloudflare\Client;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Log\SystemLoggerInterface;
 
 /**
  * @Flow\Scope("singleton")
  */
-class CacheService {
-
-	CONST CLOUDFLARE_API_URI = 'https://www.cloudflare.com/api_json.html';
+class ApiService {
 
 	/**
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Http\Client\Browser
+	 * @var Client
 	 */
-	protected $browser;
+	protected $client;
 
 	/**
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Http\Client\CurlEngine
+	 * @var SystemLoggerInterface
 	 */
-	protected $browserRequestEngine;
+	protected $systemLogger;
 
 	/**
-	 * Initialize object
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Core\Bootstrap
 	 */
-	public function initializeObject() {
-		$this->browser->setRequestEngine($this->browserRequestEngine);
-	}
-
-	/**
-	 * Send request to CloudFlare API
-	 *
-	 * @param string $method
-	 * @param array $arguments
-	 * @return array
-	 * @throws \Ttree\Cloudflare\Exception
-	 */
-	protected function request($method = 'GET', array $arguments = array()) {
-		$response = $this->browser->request(self::CLOUDFLARE_API_URI, $method, $arguments);
-
-		if ($response->getStatusCode() !== 200) {
-			throw new \Ttree\Cloudflare\Exception(
-				sprintf('HTTP request do not return 200 status code (%s)', $response->getStatusCode()),
-				1386263549
-			);
-		}
-
-		$response = json_decode($response->getContent(), TRUE);
-		if ($response['result'] !== 'success') {
-			throw new \Ttree\Cloudflare\Exception(
-				sprintf('JSON payload do not contain a success status (%s)', $response['result']),
-				1386263553
-			);
-		}
-
-		return $response;
-	}
+	protected $bootstrap;
 
 	/**
 	 * Retrieve domain statistics for a given time frame
@@ -77,15 +48,10 @@ class CacheService {
 	 * @return array
 	 */
 	public function getStatistics($interval, CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'stats',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+		return $this->client->request($cacheDefinition, 'stats', array(
 			'z' => $cacheDefinition->getZone(),
 			'interval' => (integer)$interval
 		));
-
-		return $result;
 	}
 
 	/**
@@ -95,13 +61,7 @@ class CacheService {
 	 * @return array
 	 */
 	public function getAllDomains(CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'zone_load_multi',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail()
-		));
-
-		return $result;
+		return $this->client->request($cacheDefinition, 'zone_load_multi');
 	}
 
 	/**
@@ -111,14 +71,9 @@ class CacheService {
 	 * @return array
 	 */
 	public function getAllDnsRecordsByDomainDefinition(CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'rec_load_all',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+		return $this->client->request($cacheDefinition, 'rec_load_all', array(
 			'z' => $cacheDefinition->getZone()
 		));
-
-		return $result;
 	}
 
 	/**
@@ -128,15 +83,10 @@ class CacheService {
 	 * @return array
 	 */
 	public function enableDevelopmentMode(CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'devmode',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+		return $this->client->request($cacheDefinition, 'devmode', array(
 			'z' => $cacheDefinition->getZone(),
 			'v' => 1
 		));
-
-		return $result;
 	}
 
 	/**
@@ -146,15 +96,10 @@ class CacheService {
 	 * @return array
 	 */
 	public function disableDevelopmentMode(CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'devmode',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+		return $this->client->request($cacheDefinition, 'devmode', array(
 			'z' => $cacheDefinition->getZone(),
 			'v' => 0
 		));
-
-		return $result;
 	}
 
 	/**
@@ -164,32 +109,26 @@ class CacheService {
 	 * @return array
 	 */
 	public function purgeAllCache(CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'fpurge_ts',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+		return $this->client->request($cacheDefinition, 'fpurge_ts', array(
 			'z' => $cacheDefinition->getZone(),
 			'v' => 1
 		));
-
-		return $result;
 	}
 
 	/**
 	 * Purge a single file
 	 *
-	 * @param string $url
+	 * @param string $uri
 	 * @param CacheDefinition $cacheDefinition
 	 * @return array
 	 */
-	public function purgeCacheByUrl($url, CacheDefinition $cacheDefinition) {
-		$result = $this->request('POST', array(
-			'a' => 'zone_file_purge',
-			'tkn' => $cacheDefinition->getApiKey(),
-			'email' => $cacheDefinition->getEmail(),
+	public function purgeCacheByUri($uri, CacheDefinition $cacheDefinition) {
+		$result = $this->client->request($cacheDefinition, 'zone_file_purge', array(
 			'z' => $cacheDefinition->getZone(),
-			'url' => $url
+			'url' => $uri
 		));
+
+		$this->systemLogger->log(sprintf('Purge Cloudflare cache for URI "%s"', $uri), LOG_INFO, NULL, 'Cloudflare');
 
 		return $result;
 	}

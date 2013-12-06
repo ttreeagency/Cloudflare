@@ -11,8 +11,9 @@ namespace Ttree\Cloudflare\Command;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Ttree\Cloudflare\CacheDefinition;
-use Ttree\Cloudflare\Service\CacheService;
+use Ttree\Cloudflare\Factory\CacheDefinitionFactory;
+use Ttree\Cloudflare\Service\ApiService;
+use Ttree\Cloudflare\Service\RequestCacheService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Utility\Arrays;
 
@@ -23,14 +24,26 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 
 	/**
 	 * @Flow\Inject
-	 * @var CacheService
+	 * @var ApiService
 	 */
-	protected $cacheService;
+	protected $apiService;
+
+	/**
+	 * @Flow\Inject
+	 * @var RequestCacheService
+	 */
+	protected $requestCacheService;
 
 	/**
 	 * @var array
 	 */
 	protected $settings;
+
+	/**
+	 * @Flow\Inject
+	 * @var CacheDefinitionFactory
+	 */
+	protected $cacheDefinitionFactory;
 
 	/**
 	 * Inject the settings
@@ -49,10 +62,10 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	 * @param integer $interval
 	 */
 	public function statsCommand($zone, $interval = 30) {
-		$cacheDefinition = new CacheDefinition($this->settings['apiKey'], $this->settings['email'], $zone);
+		$cacheDefinition = $this->cacheDefinitionFactory->create($zone);
 		$this->output("\n");
 		try {
-			$statistics = $this->cacheService->getStatistics($interval, $cacheDefinition);
+			$statistics = $this->apiService->getStatistics($interval, $cacheDefinition);
 
 			$this->output("Page Views:\t\t\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.trafficBreakdown.pageviews.regular')));
 			$this->output("Page Views (Threat):\t\t%s\n", array(Arrays::getValueByPath($statistics, 'response.result.objs.0.trafficBreakdown.pageviews.threat')));
@@ -73,10 +86,10 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	 * @param string $zone
 	 */
 	public function purgeAllCacheCommand($zone) {
-		$cacheDefinition = new CacheDefinition($this->settings['apiKey'], $this->settings['email'], $zone);
+		$cacheDefinition = $this->cacheDefinitionFactory->create($zone);
 		$this->output("\n");
 		try {
-			$this->cacheService->purgeAllCache($cacheDefinition);
+			$this->apiService->purgeAllCache($cacheDefinition);
 			$this->output("Purging cache in progress ...\n");
 		} catch (\Ttree\Cloudflare\Exception $exception) {
 			$this->output("Unable to purge cache ...\n");
@@ -84,20 +97,21 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	}
 
 	/**
-	 * Purge cache for the given URL
+	 * Purge cache for the given URI
 	 *
 	 * @param string $zone
-	 * @param string $url
+	 * @param string $uri
 	 */
-	public function purgeCacheCommand($zone, $url) {
-		$cacheDefinition = new CacheDefinition($this->settings['apiKey'], $this->settings['email'], $zone);
+	public function purgeCacheCommand($zone, $uri) {
+		$cacheDefinition = $this->cacheDefinitionFactory->create($zone);
 		$this->output("\n");
 		try {
-			$this->cacheService->purgeCacheByUrl($url, $cacheDefinition);
+			$this->apiService->purgeCacheByUri($uri, $cacheDefinition);
+			$this->requestCacheService->remove($uri);
 
-			$this->output("Purging cache for \"%s\" in progress ...\n", array($url));
+			$this->output("Purging cache for \"%s\" in progress ...\n", array($uri));
 		} catch (\Ttree\Cloudflare\Exception $exception) {
-			$this->output("Unable to purge cache for \"%s\" ...\n", array($url));
+			$this->output("Unable to purge cache for \"%s\" ...\n", array($uri));
 		}
 	}
 
@@ -108,14 +122,14 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 	 * @param boolean $disable
 	 */
 	public function developmentModeCommand($zone, $disable = FALSE) {
-		$cacheDefinition = new CacheDefinition($this->settings['apiKey'], $this->settings['email'], $zone);
+		$cacheDefinition = $this->cacheDefinitionFactory->create($zone);
 		$this->output("\n");
 		try {
 			if ($disable === FALSE) {
-				$this->cacheService->enableDevelopmentMode($cacheDefinition);
+				$this->apiService->enableDevelopmentMode($cacheDefinition);
 				$this->output("Development mode enabled ...\n");
 			} else {
-				$this->cacheService->disableDevelopmentMode($cacheDefinition);
+				$this->apiService->disableDevelopmentMode($cacheDefinition);
 				$this->output("Development mode disabled ...\n");
 			}
 		} catch (\Ttree\Cloudflare\Exception $exception) {
@@ -123,5 +137,3 @@ class CacheCommandController extends \TYPO3\Flow\Cli\CommandController {
 		}
 	}
 }
-
-?>

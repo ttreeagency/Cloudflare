@@ -38,10 +38,10 @@ class CacheDefinition {
 	 * @param string $email
 	 * @param string $zone
 	 */
-	public function __construct($apiKey, $email, $zone = NULL) {
+	public function __construct($zone, $apiKey, $email) {
+		$this->zone = $zone;
 		$this->apiKey = $apiKey;
 		$this->email = $email;
-		$this->zone = $zone;
 	}
 
 	/**

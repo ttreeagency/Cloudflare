@@ -11,11 +11,21 @@ namespace Ttree\Cloudflare;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Package\Package as BasePackage;
 
 /**
- * Cloudflare Exception
+ * The Ttree Cloudflare Package
  */
-class Exception extends \TYPO3\Flow\Exception {
+class Package extends BasePackage {
+
+	/**
+	 * @param \TYPO3\Flow\Core\Bootstrap $bootstrap The current bootstrap
+	 * @return void
+	 */
+	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
+		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+
+		$dispatcher->connect('TYPO3\Neos\Service\PublishingService', 'nodePublished', 'Ttree\Cloudflare\Service\RequestCacheService', 'purgeCacheByNode');
+	}
 
 }
