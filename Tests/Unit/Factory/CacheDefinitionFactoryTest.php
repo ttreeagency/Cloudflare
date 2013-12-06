@@ -109,6 +109,60 @@ class CacheDefinitionFactoryTest extends \TYPO3\Flow\Tests\UnitTestCase {
 		$this->assertSame('ABC', $cacheDefinition->getEmail());
 	}
 
+	/**
+	 * @test
+	 */
+	public function factoryReturnEnableHasTrueByDefault() {
+		$cacheDefinitionFactory = new CacheDefinitionFactory();
+		$cacheDefinitionFactory->injectSettings(array(
+			'default' => array(
+				'zone' => 'domain.com',
+				'apiKey' => '1234',
+				'email' => 'info@domain.com'
+			)
+		));
+
+		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+
+		$this->assertSame('domain.com', $cacheDefinition->getZone());
+		$this->assertSame(TRUE, $cacheDefinition->getEnable());
+	}
+
+	/**
+	 * @test
+	 */
+	public function factoryReturnSupportEnableProperty() {
+		$cacheDefinitionFactory = new CacheDefinitionFactory();
+		$cacheDefinitionFactory->injectSettings(array(
+			'default' => array(
+				'enable' => TRUE,
+				'zone' => 'domain.com',
+				'apiKey' => '1234',
+				'email' => 'info@domain.com'
+			)
+		));
+
+		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+
+		$this->assertSame('domain.com', $cacheDefinition->getZone());
+		$this->assertSame(TRUE, $cacheDefinition->getEnable());
+
+		$cacheDefinitionFactory = new CacheDefinitionFactory();
+		$cacheDefinitionFactory->injectSettings(array(
+			'default' => array(
+				'enable' => FALSE,
+				'zone' => 'domain.com',
+				'apiKey' => '1234',
+				'email' => 'info@domain.com'
+			)
+		));
+
+		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+
+		$this->assertSame('domain.com', $cacheDefinition->getZone());
+		$this->assertSame(FALSE, $cacheDefinition->getEnable());
+	}
+
 }
 
 ?>

@@ -43,24 +43,29 @@ class CacheDefinitionFactory {
 	 * @param string $zone
 	 * @param string $apiKey
 	 * @param string $email
+	 * @param boolean $enable
 	 * @return CacheDefinition
 	 * @throws \Ttree\Cloudflare\Exception
 	 */
-	public function create($zone = NULL, $apiKey = NULL, $email = NULL) {
-		$zone = $zone ?: $this->getZoneFromSettings();
+	public function create($zone = NULL, $apiKey = NULL, $email = NULL, $enable = NULL) {
+		$zone = $zone ?: $this->getDefaultZoneFromSettings();
 		if (!is_string($zone) || trim($zone) === '') {
 			throw new \Ttree\Cloudflare\Exception('Zone must not be empty', 1386348250);
 		}
 		$apiKey = $apiKey ?: $this->getApiKeyFromSettings($zone);
 		$email = $email ?: $this->getEmailFromSettings($zone);
+		$enable = $enable ?: $this->getEnableFromSettings($enable);
+		if ($enable === NULL) {
+			$enable = TRUE;
+		}
 
-		return new CacheDefinition($zone, $apiKey, $email);
+		return new CacheDefinition($zone, $apiKey, $email, $enable);
 	}
 
 	/**
 	 * Get zone from default settings
 	 */
-	protected function getZoneFromSettings() {
+	protected function getDefaultZoneFromSettings() {
 		return Arrays::getValueByPath($this->settings, 'default.zone');
 	}
 
@@ -71,7 +76,7 @@ class CacheDefinitionFactory {
 	 * @return string
 	 */
 	protected function getApiKeyFromSettings($zone) {
-		return Arrays::getValueByPath($this->settings, str_replace('.', '_', $zone) . '.apiKey') ?: Arrays::getValueByPath($this->settings, 'default.apiKey');
+		return $this->getDefaultValueFromSettings($zone, 'apiKey');
 	}
 
 	/**
@@ -81,6 +86,20 @@ class CacheDefinitionFactory {
 	 * @return string
 	 */
 	protected function getEmailFromSettings($zone) {
-		return Arrays::getValueByPath($this->settings, str_replace('.', '_', $zone) . '.email') ?: Arrays::getValueByPath($this->settings, 'default.email');
+		return $this->getDefaultValueFromSettings($zone, 'email');
+	}
+
+	/**
+	 * Get email address from settings
+	 *
+	 * @param $zone
+	 * @return string
+	 */
+	protected function getEnableFromSettings($zone) {
+		return $this->getDefaultValueFromSettings($zone, 'enable');
+	}
+
+	protected function getDefaultValueFromSettings($zone, $property) {
+		return Arrays::getValueByPath($this->settings, str_replace('.', '_', $zone) . '.' . $property) ?: Arrays::getValueByPath($this->settings, 'default.' . $property);
 	}
 }

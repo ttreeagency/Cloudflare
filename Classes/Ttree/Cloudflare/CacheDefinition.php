@@ -34,14 +34,21 @@ class CacheDefinition {
 	protected $zone;
 
 	/**
+	 * @var boolean
+	 */
+	protected $enable;
+
+	/**
 	 * @param string $apiKey
 	 * @param string $email
 	 * @param string $zone
+	 * @param boolean $enable
 	 */
-	public function __construct($zone, $apiKey, $email) {
+	public function __construct($zone, $apiKey, $email, $enable) {
 		$this->zone = $zone;
 		$this->apiKey = $apiKey;
 		$this->email = $email;
+		$this->enable = (boolean)$enable;
 	}
 
 	/**
@@ -65,4 +72,10 @@ class CacheDefinition {
 		return $this->email;
 	}
 
+	/**
+	 * @return boolean
+	 */
+	public function getEnable() {
+		return $this->enable;
+	}
 }

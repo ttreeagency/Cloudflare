@@ -3,8 +3,10 @@ prototype(Ttree.Cloudflare:Cache) {
 
 	documentNode = ${documentNode}
 
-	enable = FALSE
-	apiKey = 'need-to-be-configured'
-	email = 'api@domain.com'
+	# this can be use to disable the caching features
+	# Warning: currently CloudFlare will continue to cache your page
+	enable = TRUE
+
+	# apiKey and email are configured in your Settings.yaml
 	zone = 'need-to-be-configured'
 }

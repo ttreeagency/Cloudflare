@@ -11,9 +11,11 @@ namespace Ttree\Cloudflare\TypoScript;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Ttree\Cloudflare\Factory\CacheDefinitionFactory;
 use Ttree\Cloudflare\Service\RequestCacheService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SystemLoggerInterface;
+use TYPO3\Flow\Mvc\ActionRequest;
 use TYPO3\Flow\Reflection\ObjectAccess;
 use TYPO3\TYPO3CR\Domain\Factory\NodeFactory;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
@@ -43,29 +45,25 @@ class CacheImplementation extends AbstractTypoScriptObject {
 	protected $requestCacheService;
 
 	/**
+	 * @Flow\Inject
+	 * @var CacheDefinitionFactory
+	 */
+	protected $cacheDefinitionFactory;
+
+	/**
 	 * @var NodeInterface
 	 */
 	protected $documentNode;
 
 	/**
-	 * @var boolean
-	 */
-	protected $enable;
-
-	/**
-	 * @var string
-	 */
-	protected $apiKey;
-
-	/**
-	 * @var string
-	 */
-	protected $email;
-
-	/**
 	 * @var string
 	 */
 	protected $zone;
+
+	/**
+	 * @var boolean
+	 */
+	protected $enable;
 
 	/**
 	 * @param \TYPO3\TYPO3CR\Domain\Model\NodeInterface $documentNode
@@ -75,31 +73,17 @@ class CacheImplementation extends AbstractTypoScriptObject {
 	}
 
 	/**
-	 * @param string $apiKey
-	 */
-	public function setApiKey($apiKey) {
-		$this->apiKey = $apiKey;
-	}
-
-	/**
-	 * @param string $email
-	 */
-	public function setEmail($email) {
-		$this->email = $email;
-	}
-
-	/**
-	 * @param boolean $enable
-	 */
-	public function setEnable($enable) {
-		$this->enable = $enable;
-	}
-
-	/**
 	 * @param string $zone
 	 */
 	public function setZone($zone) {
 		$this->zone = $zone;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getEnable() {
+		return $this->enable;
 	}
 
 	/**
@@ -111,13 +95,19 @@ class CacheImplementation extends AbstractTypoScriptObject {
 	 * @return void
 	 */
 	public function evaluate() {
+		/** @var ActionRequest $request */
+		$request = $this->tsRuntime->getControllerContext()->getRequest()->getMainRequest();
+		$cacheDefinition = $this->cacheDefinitionFactory->create($this->tsValue('zone'));
+		if ($cacheDefinition->getEnable() === FALSE || $this->tsValue('enable') === FALSE) {
+			$this->systemLogger->log('Request cache disabled', LOG_DEBUG, NULL, 'Cloudflare');
+			return;
+		}
+
 		/** @var NodeInterface $documentNode */
 		$documentNode = $this->tsValue('documentNode');
 		if ($documentNode->getContext()->getWorkspace(FALSE)->getName() !== 'live') {
 			return;
 		}
-
-		$request = $this->tsRuntime->getControllerContext()->getRequest()->getMainRequest();
 
 		$uriBuilder = clone $this->tsRuntime->getControllerContext()->getUriBuilder();
 		$uriBuilder->setRequest($request);
@@ -134,6 +124,6 @@ class CacheImplementation extends AbstractTypoScriptObject {
 			return;
 		}
 
-		$this->requestCacheService->createRequestUriCacheRecord($uri, $nodes);
+		$this->requestCacheService->createRequestUriCacheRecord($uri, $nodes, $cacheDefinition);
 	}
 }

@@ -6,6 +6,7 @@ Ttree:
       apiKey: 'need-to-be-configured'
       email: 'api@domain.com'
     'domain_com':
+      enable: FALSE
       zone: 'domain.com'
       apiKey: 'need-to-be-configured'
       email: 'api@domain.com'
