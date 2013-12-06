@@ -15,6 +15,15 @@ Features
 - Clear the cache on node publication (for all URI where the current node is used)
 - Command Line tools to do some basic thing with the Cloudflare API
 
+Ready for production ?
+======================
+
+Currently this package is used in production on our agency website (ttreeWebsite_). But currently the API is not marked has
+stable and can change in the future. Commit message respect the TYPO3 Neos commit message, and breaking change will be
+marked with "!!!" on the commit first line.
+
+.. _ttreeWebsite: http://ttree.ch/
+
 How to configure cloudflare to cache HTML page ?
 ================================================
 
