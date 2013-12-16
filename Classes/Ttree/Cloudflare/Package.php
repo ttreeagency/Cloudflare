@@ -25,7 +25,7 @@ class Package extends BasePackage {
 	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
 		$dispatcher = $bootstrap->getSignalSlotDispatcher();
 
-		$dispatcher->connect('TYPO3\Neos\Service\PublishingService', 'nodePublished', 'Ttree\Cloudflare\Service\RequestCacheService', 'purgeCacheByNode');
+		$dispatcher->connect('TYPO3\TYPO3CR\Domain\Model\Workspace', 'afterNodePublishing', 'Ttree\Cloudflare\Service\RequestCacheService', 'purgeCacheByNode');
 	}
 
 }

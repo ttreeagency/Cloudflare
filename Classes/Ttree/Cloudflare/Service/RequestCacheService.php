@@ -21,6 +21,7 @@ use TYPO3\Flow\Reflection\ObjectAccess;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\TYPO3CR\Domain\Factory\NodeFactory;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
+use TYPO3\TYPO3CR\Domain\Model\Workspace;
 
 /**
  * @Flow\Scope("singleton")
@@ -91,15 +92,20 @@ class RequestCacheService {
 
 	/**
 	 * @param NodeInterface $node
+	 * @param Workspace $targetWorkspace
 	 */
-	public function purgeCacheByNode(NodeInterface $node) {
+	public function purgeCacheByNode(NodeInterface $node, Workspace $targetWorkspace) {
+		if ($targetWorkspace->getName() !== 'live') {
+			return;
+		}
 		foreach ($this->cache->getByTag($node->getIdentifier()) as $value) {
 			list($uri, $zone) = Arrays::trimExplode('||', $value);
 			try {
 				$cacheDefinition = $this->cacheDefinitionFactory->create($zone);
 				$this->purgeCacheByRequestUri($uri, $cacheDefinition);
 			} catch (\Ttree\Cloudflare\Exception $exception) {
-				$this->systemLogger->log(sprintf("Unable to clear cache for \"%s\"", $uri), LOG_ERR, NULL, 'Cloudflare');
+				$this->systemLogger->log(sprintf("Unable to clear cache for \"%s\"", $uri), LOG_CRIT, NULL, 'Cloudflare');
+				$this->systemLogger->logException($exception);
 			}
 		}
 	}
@@ -136,7 +142,7 @@ class RequestCacheService {
 			$tags[$identifier] = $identifier;
 		}
 		$this->set($uri, $tags, $cacheDefinition);
-		$this->systemLogger->log('Create new request cache record', LOG_DEBUG, NULL, 'Cloudflare');
+		$this->systemLogger->log(sprintf('Create new request cache record for "%s"', $uri), LOG_DEBUG, NULL, 'Cloudflare');
 	}
 
 	/**
@@ -146,7 +152,7 @@ class RequestCacheService {
 	 */
 	public function removeRequestUriCacheRecord($uri) {
 		$entryIdentifier = $this->createRequestUriCacheRecordIdentifier($uri);
-		$this->systemLogger->log('Remove existing request cache record', LOG_DEBUG, NULL, 'Cloudflare');
+		$this->systemLogger->log(sprintf('Remove existing request cache record for "%s"', $uri), LOG_DEBUG, NULL, 'Cloudflare');
 		$this->cache->remove($entryIdentifier);
 	}
 
