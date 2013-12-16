@@ -128,7 +128,7 @@ class ApiService {
 			'url' => $uri
 		));
 
-		$this->systemLogger->log(sprintf('Purge Cloudflare cache for URI "%s"', $uri), LOG_INFO, NULL, 'Cloudflare');
+		$this->systemLogger->log(sprintf('Purge Cloudflare cache for "%s"', $uri), LOG_INFO, NULL, 'Cloudflare');
 
 		return $result;
 	}

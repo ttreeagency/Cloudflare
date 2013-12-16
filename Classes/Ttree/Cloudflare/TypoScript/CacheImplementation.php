@@ -92,7 +92,7 @@ class CacheImplementation extends AbstractTypoScriptObject {
 			$request = $this->tsRuntime->getControllerContext()->getRequest()->getMainRequest();
 			$cacheDefinition = $this->cacheDefinitionFactory->create($this->tsValue('zone'));
 			if ($cacheDefinition->getEnable() === FALSE || $this->tsValue('enable') === FALSE) {
-				$this->systemLogger->log('Request cache disabled', LOG_DEBUG, NULL, 'Cloudflare');
+				$this->systemLogger->log('Cloudflare Request cache disabled', LOG_DEBUG, NULL, 'Cloudflare');
 				return;
 			}
 
@@ -112,7 +112,7 @@ class CacheImplementation extends AbstractTypoScriptObject {
 				->uriFor('show', array('node' => $documentNode->getIdentifier()), 'Frontend\Node', 'TYPO3.Neos');
 
 			if ($this->requestCacheService->has($uri)) {
-				$this->systemLogger->log('Request cache record exist', LOG_DEBUG, NULL, 'Cloudflare');
+				$this->systemLogger->log(sprintf('Request cache record exist for "%s"', $uri), LOG_DEBUG, NULL, 'Cloudflare');
 				return;
 			}
 
