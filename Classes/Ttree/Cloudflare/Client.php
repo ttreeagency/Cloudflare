@@ -56,6 +56,7 @@ class Client {
 			'tkn' => $cacheDefinition->getApiKey(),
 			'email' => $cacheDefinition->getEmail()
 		), $arguments);
+
 		$response = $this->browser->request(self::CLOUDFLARE_API_URI, $method, $arguments);
 
 		if ($response->getStatusCode() !== 200) {
@@ -73,7 +74,7 @@ class Client {
 			);
 		}
 
-		return $response ?: array();
+		return $response;
 	}
 
 }
