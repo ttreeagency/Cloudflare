@@ -32,9 +32,13 @@ class CacheDefinitionFactory {
 	 *
 	 * @param array $settings
 	 * @return void
+	 * @throws \Ttree\Cloudflare\Exception
 	 */
 	public function injectSettings(array $settings) {
-		$this->settings = $settings;
+		if (!isset($settings['zone']) || !is_array($settings['zone'])) {
+			throw new \Ttree\Cloudflare\Exception('Invalid Settings', 1387204810);
+		}
+		$this->settings = $settings['zone'];
 	}
 
 	/**
