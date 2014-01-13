@@ -2,7 +2,6 @@
     "name": "ttree/cloudflare",
     "type": "typo3-flow-package",
     "description": null,
-    "version": null,
     "require": {
         "typo3/flow": "*"
     },
