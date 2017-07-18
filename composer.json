@@ -1,6 +1,6 @@
 {
     "name": "ttree/cloudflare",
-    "type": "typo3-flow-package",
+    "type": "neos-package",
     "license": "MIT",
     "description": "Neos CMS add support for full page cache with Cloudflare (event the HTML page)",
     "require": {
