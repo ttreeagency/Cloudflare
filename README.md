@@ -1,5 +1,5 @@
-Strapping
-=========
+Cloudflare integration for Neos CMS
+===================================
 
 This package for Neos CMS add support for full page cache with Cloudflare (event the HTML page)
 
