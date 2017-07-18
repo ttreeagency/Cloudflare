@@ -4,7 +4,7 @@
     "license": "MIT",
     "description": "Neos CMS add support for full page cache with Cloudflare (event the HTML page)",
     "require": {
-        "typo3/flow": "^3.0"
+        "neos/flow": "^3.0"
     },
     "autoload": {
         "psr-0": {
