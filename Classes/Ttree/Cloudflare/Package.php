@@ -16,16 +16,16 @@ use TYPO3\Flow\Package\Package as BasePackage;
 /**
  * The Ttree Cloudflare Package
  */
-class Package extends BasePackage {
+class Package extends BasePackage
+{
+    /**
+     * @param \TYPO3\Flow\Core\Bootstrap $bootstrap The current bootstrap
+     * @return void
+     */
+    public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap)
+    {
+        $dispatcher = $bootstrap->getSignalSlotDispatcher();
 
-	/**
-	 * @param \TYPO3\Flow\Core\Bootstrap $bootstrap The current bootstrap
-	 * @return void
-	 */
-	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
-		$dispatcher = $bootstrap->getSignalSlotDispatcher();
-
-		$dispatcher->connect('TYPO3\TYPO3CR\Domain\Model\Workspace', 'afterNodePublishing', 'Ttree\Cloudflare\Service\RequestCacheService', 'purgeCacheByNode');
-	}
-
+        $dispatcher->connect('TYPO3\TYPO3CR\Domain\Model\Workspace', 'afterNodePublishing', 'Ttree\Cloudflare\Service\RequestCacheService', 'purgeCacheByNode');
+    }
 }

@@ -17,152 +17,155 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * Test for CacheDefinitionFactory
  */
-class CacheDefinitionFactoryTest extends \TYPO3\Flow\Tests\UnitTestCase {
+class CacheDefinitionFactoryTest extends \TYPO3\Flow\Tests\UnitTestCase
+{
+    /**
+     * @test
+     */
+    public function factoryReturnAllDefaultValueByDefault()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 */
-	public function factoryReturnAllDefaultValueByDefault() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinition = $cacheDefinitionFactory->create();
 
-		$cacheDefinition = $cacheDefinitionFactory->create();
+        $this->assertSame('domain.com', $cacheDefinition->getZone());
+        $this->assertSame('1234', $cacheDefinition->getApiKey());
+        $this->assertSame('info@domain.com', $cacheDefinition->getEmail());
+    }
 
-		$this->assertSame('domain.com', $cacheDefinition->getZone());
-		$this->assertSame('1234', $cacheDefinition->getApiKey());
-		$this->assertSame('info@domain.com', $cacheDefinition->getEmail());
-	}
+    /**
+     * @test
+     * @expectedException \Ttree\Cloudflare\Exception
+     */
+    public function factoryReturnAnExceptionIfTheZoneIfEmpty()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'zone' => '',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 * @expectedException \Ttree\Cloudflare\Exception
-	 */
-	public function factoryReturnAnExceptionIfTheZoneIfEmpty() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'zone' => '',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinitionFactory->create();
+    }
 
-		$cacheDefinitionFactory->create();
-	}
+    /**
+     * @test
+     */
+    public function factoryReturnGetDefaultValueFromSettings()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            ),
+            'lost_com' => array(
+                'zone' => 'lost.com',
+                'apiKey' => '5678',
+                'email' => 'info@lost.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 */
-	public function factoryReturnGetDefaultValueFromSettings() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			),
-			'lost_com' => array(
-				'zone' => 'lost.com',
-				'apiKey' => '5678',
-				'email' => 'info@lost.com'
-			)
-		));
+        $cacheDefinitionFactory->create();
 
-		$cacheDefinitionFactory->create();
+        $cacheDefinition = $cacheDefinitionFactory->create('domain.com');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+        $this->assertSame('domain.com', $cacheDefinition->getZone());
+        $this->assertSame('1234', $cacheDefinition->getApiKey());
+        $this->assertSame('info@domain.com', $cacheDefinition->getEmail());
 
-		$this->assertSame('domain.com', $cacheDefinition->getZone());
-		$this->assertSame('1234', $cacheDefinition->getApiKey());
-		$this->assertSame('info@domain.com', $cacheDefinition->getEmail());
+        $cacheDefinition = $cacheDefinitionFactory->create('lost.com');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('lost.com');
+        $this->assertSame('lost.com', $cacheDefinition->getZone());
+        $this->assertSame('5678', $cacheDefinition->getApiKey());
+        $this->assertSame('info@lost.com', $cacheDefinition->getEmail());
+    }
 
-		$this->assertSame('lost.com', $cacheDefinition->getZone());
-		$this->assertSame('5678', $cacheDefinition->getApiKey());
-		$this->assertSame('info@lost.com', $cacheDefinition->getEmail());
-	}
+    /**
+     * @test
+     */
+    public function factoryCanCreateDefintionNotFoundInSettings()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 */
-	public function factoryCanCreateDefintionNotFoundInSettings() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinition = $cacheDefinitionFactory->create('google.com', 'info@google.com', 'ABC');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('google.com', 'info@google.com', 'ABC');
+        $this->assertSame('google.com', $cacheDefinition->getZone());
+        $this->assertSame('info@google.com', $cacheDefinition->getApiKey());
+        $this->assertSame('ABC', $cacheDefinition->getEmail());
+    }
 
-		$this->assertSame('google.com', $cacheDefinition->getZone());
-		$this->assertSame('info@google.com', $cacheDefinition->getApiKey());
-		$this->assertSame('ABC', $cacheDefinition->getEmail());
-	}
+    /**
+     * @test
+     */
+    public function factoryReturnEnableHasTrueByDefault()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 */
-	public function factoryReturnEnableHasTrueByDefault() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinition = $cacheDefinitionFactory->create('domain.com');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+        $this->assertSame('domain.com', $cacheDefinition->getZone());
+        $this->assertSame(true, $cacheDefinition->getEnable());
+    }
 
-		$this->assertSame('domain.com', $cacheDefinition->getZone());
-		$this->assertSame(TRUE, $cacheDefinition->getEnable());
-	}
+    /**
+     * @test
+     */
+    public function factoryReturnSupportEnableProperty()
+    {
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'enable' => true,
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-	/**
-	 * @test
-	 */
-	public function factoryReturnSupportEnableProperty() {
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'enable' => TRUE,
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinition = $cacheDefinitionFactory->create('domain.com');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
+        $this->assertSame('domain.com', $cacheDefinition->getZone());
+        $this->assertSame(true, $cacheDefinition->getEnable());
 
-		$this->assertSame('domain.com', $cacheDefinition->getZone());
-		$this->assertSame(TRUE, $cacheDefinition->getEnable());
+        $cacheDefinitionFactory = new CacheDefinitionFactory();
+        $cacheDefinitionFactory->injectSettings(array(
+            'default' => array(
+                'enable' => false,
+                'zone' => 'domain.com',
+                'apiKey' => '1234',
+                'email' => 'info@domain.com'
+            )
+        ));
 
-		$cacheDefinitionFactory = new CacheDefinitionFactory();
-		$cacheDefinitionFactory->injectSettings(array(
-			'default' => array(
-				'enable' => FALSE,
-				'zone' => 'domain.com',
-				'apiKey' => '1234',
-				'email' => 'info@domain.com'
-			)
-		));
+        $cacheDefinition = $cacheDefinitionFactory->create('domain.com');
 
-		$cacheDefinition = $cacheDefinitionFactory->create('domain.com');
-
-		$this->assertSame('domain.com', $cacheDefinition->getZone());
-		$this->assertSame(FALSE, $cacheDefinition->getEnable());
-	}
-
+        $this->assertSame('domain.com', $cacheDefinition->getZone());
+        $this->assertSame(false, $cacheDefinition->getEnable());
+    }
 }
-
-?>

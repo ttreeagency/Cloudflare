@@ -16,66 +16,71 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * Cloudflare Cache Definition
  */
-class CacheDefinition {
+class CacheDefinition
+{
+    /**
+     * @var string
+     */
+    protected $apiKey;
 
-	/**
-	 * @var string
-	 */
-	protected $apiKey;
+    /**
+     * @var string
+     */
+    protected $email;
 
-	/**
-	 * @var string
-	 */
-	protected $email;
+    /**
+     * @var string
+     */
+    protected $zone;
 
-	/**
-	 * @var string
-	 */
-	protected $zone;
+    /**
+     * @var boolean
+     */
+    protected $enable;
 
-	/**
-	 * @var boolean
-	 */
-	protected $enable;
+    /**
+     * @param string $apiKey
+     * @param string $email
+     * @param string $zone
+     * @param boolean $enable
+     */
+    public function __construct($zone, $apiKey, $email, $enable)
+    {
+        $this->zone = $zone;
+        $this->apiKey = $apiKey;
+        $this->email = $email;
+        $this->enable = (boolean)$enable;
+    }
 
-	/**
-	 * @param string $apiKey
-	 * @param string $email
-	 * @param string $zone
-	 * @param boolean $enable
-	 */
-	public function __construct($zone, $apiKey, $email, $enable) {
-		$this->zone = $zone;
-		$this->apiKey = $apiKey;
-		$this->email = $email;
-		$this->enable = (boolean)$enable;
-	}
+    /**
+     * @return string
+     */
+    public function getApiKey()
+    {
+        return $this->apiKey;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getApiKey() {
-		return $this->apiKey;
-	}
+    /**
+     * @return string
+     */
+    public function getZone()
+    {
+        return $this->zone;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getZone() {
-		return $this->zone;
-	}
+    /**
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEmail() {
-		return $this->email;
-	}
-
-	/**
-	 * @return boolean
-	 */
-	public function getEnable() {
-		return $this->enable;
-	}
+    /**
+     * @return boolean
+     */
+    public function getEnable()
+    {
+        return $this->enable;
+    }
 }
